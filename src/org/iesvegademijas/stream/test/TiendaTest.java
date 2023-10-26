@@ -30,10 +30,10 @@ class TiendaTest {
 			fabHome.beginTransaction();
 	
 			List<Fabricante> listFab = fabHome.findAll();
-		
-			
+
+
 			//TODO STREAMS
-			
+
 		
 			fabHome.commitTransaction();
 		}
@@ -117,8 +117,11 @@ class TiendaTest {
 			
 			List<Producto> listProd = prodHome.findAll();
 			
-			//TODO STREAMS
-	
+			List<String> listaNombrePrecioProd = listProd.stream()
+					.map(p -> "Nombre: " + p.getNombre() + " Precio: " + p.getPrecio())
+					.toList();
+
+			listaNombrePrecioProd.forEach(System.out::println);
 			
 			prodHome.commitTransaction();
 		}
