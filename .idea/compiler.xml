@@ -9,5 +9,8 @@
         <module name="tienda_informatica" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="tienda-informatica" target="20" />
+    </bytecodeTargetLevel>
   </component>
 </project>
