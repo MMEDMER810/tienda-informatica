@@ -17,6 +17,7 @@ import org.iesvegademijas.hibernate.Fabricante;
 import org.iesvegademijas.hibernate.FabricanteHome;
 import org.iesvegademijas.hibernate.Producto;
 import org.iesvegademijas.hibernate.ProductoHome;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 
@@ -977,8 +978,15 @@ Fabricante: Xiaomi
 			fabHome.beginTransaction();
 	
 			List<Fabricante> listFab = fabHome.findAll();
-					
-			//TODO STREAMS
+
+			List<String> fabProds = listFab.stream()
+					.map(f -> "Fabricante: "+ f.getNombre() + "\n\n\t\t\tProductos:\n" + "\t\t\t" +
+							f.getProductos().stream()
+									.map(p -> p.getNombre()+"\n\t\t\t")
+									.collect(joining()))
+					.toList();
+
+			fabProds.forEach(System.out::println);
 								
 			fabHome.commitTransaction();
 		}
@@ -1001,7 +1009,9 @@ Fabricante: Xiaomi
 	
 			List<Fabricante> listFab = fabHome.findAll();
 					
-			//TODO STREAMS
+			List<String> fabsSinProds = listFab.stream().filter(p -> p.getProductos().size() == 0).map(p -> p.getNombre()).toList();
+
+			fabsSinProds.forEach(System.out::println);
 								
 			fabHome.commitTransaction();
 		}
@@ -1021,9 +1031,11 @@ Fabricante: Xiaomi
 		try {
 			prodHome.beginTransaction();
 		
-			List<Producto> listProd = prodHome.findAll();		
-						
-			//TODO STREAMS
+			List<Producto> listProd = prodHome.findAll();
+
+			System.out.println("Total de productos: " + listProd.stream().map(producto -> producto.getNombre()).toList().size());
+
+			Assertions.assertEquals(11,listProd.stream().map(producto -> producto.getNombre()).toList().size());
 			
 			prodHome.commitTransaction();
 		}
