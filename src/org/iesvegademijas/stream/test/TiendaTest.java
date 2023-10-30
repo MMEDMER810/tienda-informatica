@@ -3,16 +3,13 @@ package org.iesvegademijas.stream.test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
 import static java.util.Comparator.*;
 
+import com.sun.xml.bind.v2.TODO;
 import org.iesvegademijas.hibernate.Fabricante;
 import org.iesvegademijas.hibernate.FabricanteHome;
 import org.iesvegademijas.hibernate.Producto;
@@ -580,7 +577,7 @@ class TiendaTest {
 			codigosFabs.add(5);
 
 			List<String> listProdFab135 = listProd.stream()
-					.filter(p -> codigosFabs.contains(p.getFabricante().getCodigo()))
+					.filter(p -> codigosFabs.contains(p.getFabricante().getCodigo()))//códigosFabs es una closure externa que se atrapa en el lambda
 					.map(p -> p.getNombre() + " (Código fabricante: "+p.getFabricante().getCodigo()+")")
 					.toList();
 
@@ -882,27 +879,37 @@ Monitor 27 LED Full HD |199.25190000000003|Asus
 
 			//Máxima longitud de los nombres, precios y fabricantes
 			List<Integer> logitudNombres = listProd.stream().map(p -> p.getNombre().length()).toList();
-			Optional<Integer> maxNombres = logitudNombres.stream().reduce(Integer::max);
+			Optional<Integer> opMaxNombres = logitudNombres.stream().reduce(Integer::max);
+			int maxNombres;
+            maxNombres = opMaxNombres.orElse(0);
 
-			List<Integer> logitudPrecios = listProd.stream().map(p -> Double.toString(p.getPrecio()).length()).toList();
-			Optional<Integer> maxPrecios = logitudPrecios.stream().reduce(Integer::max);
+            List<Integer> logitudPrecios = listProd.stream().map(p -> Double.toString(p.getPrecio()).length()).toList();
+			Optional<Integer> opMaxPrecios = logitudPrecios.stream().reduce(Integer::max);
+			int maxPrecios;
+            maxPrecios = opMaxPrecios.orElse(0);
 
-			List<Integer> logitudFabricantes = listProd.stream().map(p -> p.getFabricante().getNombre().length()).toList();
-			Optional<Integer> maxFabricantes = logitudFabricantes.stream().reduce(Integer::max);
+            List<Integer> logitudFabricantes = listProd.stream().map(p -> p.getFabricante().getNombre().length()).toList();
+			Optional<Integer> opMaxFabricantes = logitudFabricantes.stream().reduce(Integer::max);
+			int maxFabricantes = 0;
+			if (opMaxFabricantes.isPresent()) {
+				maxFabricantes = opMaxFabricantes.get();
+			}
 
-			//Productos de precio mayor o igual a 180 ordenados por preio y por nombre
+			//Productos de precio mayor o igual a 180 ordenados por precio y por nombre
 			List<String> prodMayorO180 = listProd.stream()
 					.filter(p -> p.getPrecio()>=180)
 					.sorted(comparing(Producto::getPrecio).thenComparing(Producto::getNombre).reversed())
 					//Formatear en tabla con la longitud máxima menos la longitud del elemento para que se añadan los espacios correctos
-					.map(p -> p.getNombre() + " ".repeat(maxNombres.get()-p.getNombre().length()) + "|" +
-							p.getPrecio() +  " ".repeat(maxPrecios.get()-Double.toString(p.getPrecio()).length()) +"|" +
+					.map(p ->
+							p.getNombre() + " ".repeat(maxNombres-p.getNombre().length()) + "|" +
+							p.getPrecio() +  " ".repeat(maxPrecios-Double.toString(p.getPrecio()).length()) +"|" +
 							p.getFabricante().getNombre())
 					.toList();
 
 			//Formatear cabecera con los espacios máximos y 1 más
-			System.out.println("Producto" + " ".repeat(maxNombres.get()- "Producto".length() +1) + "Precio" + " ".repeat(maxPrecios.get() - "Precio".length()+ 1) + "Fabricante");
-			System.out.println("-".repeat(maxNombres.get()+maxPrecios.get()+maxFabricantes.get()));
+			System.out.println("Producto" + " ".repeat(maxNombres- "Producto".length() +1) + "Precio" + " ".repeat(maxPrecios - "Precio".length()+ 1) + "Fabricante");
+			System.out.println("-".repeat(maxNombres+maxPrecios+maxFabricantes));
+
 			prodMayorO180.forEach(System.out::println);
 
 
@@ -1143,8 +1150,13 @@ Fabricante: Xiaomi
 		
 			List<Producto> listProd = prodHome.findAll();		
 						
-			//TODO STREAMS
-			
+			Double sumaPreciosProds = listProd.stream()
+					.mapToDouble (p -> p.getPrecio())
+					.sum();
+
+			Assertions.assertEquals(2988.96, sumaPreciosProds);
+
+
 			prodHome.commitTransaction();
 		}
 		catch (RuntimeException e) {
@@ -1165,8 +1177,13 @@ Fabricante: Xiaomi
 			prodHome.beginTransaction();
 		
 			List<Producto> listProd = prodHome.findAll();		
-						
-			//TODO STREAMS
+
+			long productosAsus = listProd.stream()
+					.filter(p -> p.getFabricante().getNombre().equals("Asus"))
+					.count();
+
+			Assertions.assertEquals(2, productosAsus);
+
 			
 			prodHome.commitTransaction();
 		}
@@ -1189,7 +1206,18 @@ Fabricante: Xiaomi
 		
 			List<Producto> listProd = prodHome.findAll();		
 						
-			//TODO STREAMS
+			OptionalDouble opPrecioMedioProdsAsus = listProd.stream()
+					.filter(p -> p.getFabricante().getNombre().equals("Asus"))
+					.mapToDouble(Producto::getPrecio)
+					.average();
+
+			double precioMedioProdsAsus = 0.0;
+
+			if (opPrecioMedioProdsAsus.isPresent()) {
+				precioMedioProdsAsus = opPrecioMedioProdsAsus.getAsDouble();
+			}
+
+			Assertions.assertEquals(223.995, precioMedioProdsAsus);
 			
 			prodHome.commitTransaction();
 		}
@@ -1215,7 +1243,17 @@ Fabricante: Xiaomi
 			List<Producto> listProd = prodHome.findAll();
 						
 			//TODO STREAMS
-			
+			//Set<String[]> setNombrePrecio = listProd.stream().map(p -> new String[]{p.getNombre(), Double.toString(p.getPrecio())}).collect(toSet());
+
+		//	Double[] preciosCrucial = listProd.stream()
+		//			.filter(p -> p.getFabricante().getNombre().equals("Crucial"))
+		//			.map(p -> p.getPrecio())
+		//			.reduce(new Double[]{0.0, 0.0, 0.0, 0.0})
+
+
+
+
+
 			prodHome.commitTransaction();
 		}
 		catch (RuntimeException e) {
