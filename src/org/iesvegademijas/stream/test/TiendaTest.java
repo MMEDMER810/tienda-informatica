@@ -1243,12 +1243,14 @@ Fabricante: Xiaomi
 			List<Producto> listProd = prodHome.findAll();
 						
 			//TODO STREAMS
-			//Set<String[]> setNombrePrecio = listProd.stream().map(p -> new String[]{p.getNombre(), Double.toString(p.getPrecio())}).collect(toSet());
+			Set<String[]> setNombrePrecio = listProd.stream().map(p -> new String[]{p.getNombre(), Double.toString(p.getPrecio())}).collect(toSet());
 
-		//	Double[] preciosCrucial = listProd.stream()
-		//			.filter(p -> p.getFabricante().getNombre().equals("Crucial"))
-		//			.map(p -> p.getPrecio())
-		//			.reduce(new Double[]{0.0, 0.0, 0.0, 0.0})
+//			Double[] preciosCrucial = listProd.stream()
+//					.filter(p -> p.getFabricante().getNombre().equals("Crucial"))
+//					.map(p -> p.getPrecio())
+//					// precio máximo, precio mínimo, precio medio y el número total de productos
+//					.reduce(p -> new Double[]{0.0, Double.MAX_VALUE, 0.0, 0.0,0.0}, p.
+
 
 
 
@@ -1365,7 +1367,13 @@ Hewlett-Packard              2
 				
 			List<Fabricante> listFab = fabHome.findAll();
 				
-			//TODO STREAMS
+			List<String> fabs2oMasProds = listFab.stream()
+					.filter(f -> f.getProductos().size() >= 2)
+					.map(f -> f.getNombre())
+					.toList();
+
+			fabs2oMasProds.forEach(System.out::println);
+
 		
 			fabHome.commitTransaction();
 		}
@@ -1390,6 +1398,7 @@ Hewlett-Packard              2
 			List<Fabricante> listFab = fabHome.findAll();
 				
 			//TODO STREAMS
+
 		
 			fabHome.commitTransaction();
 		}
