@@ -17,6 +17,8 @@ import org.iesvegademijas.hibernate.ProductoHome;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 
 class TiendaTest {
 	
@@ -344,7 +346,7 @@ class TiendaTest {
 			List<String> fab4y5 = listFab.stream()
 					.skip(3)
 					.limit(2)
-					.map(f -> f.getNombre())
+					.map(Fabricante::getNombre)
 					.toList();
 
 			fab4y5.forEach(System.out::println);
@@ -457,7 +459,7 @@ class TiendaTest {
 						
 			List<String> prodPrecioMenorO120 = listProd.stream()
 							.filter(p -> p.getPrecio() <= 120)
-							.map( p -> p.getNombre())
+							.map(Producto::getNombre)
 							.toList();
 
 			System.out.println("Productos con precio <= 120: ");
@@ -486,7 +488,7 @@ class TiendaTest {
 
 			List<String> prodPrecioMayorO400 = listProd.stream()
 					.filter(p -> p.getPrecio() >= 400)
-					.map( p -> p.getNombre())
+					.map(Producto::getNombre)
 					.toList();
 
 			System.out.println("Productos con precio >= 400: ");
@@ -515,7 +517,7 @@ class TiendaTest {
 
 			List<String> prodPrecio80A300 = listProd.stream()
 					.filter(p -> p.getPrecio() >= 80 && p.getPrecio() <= 300)
-					.map( p -> p.getNombre())
+					.map(Producto::getNombre)
 					.toList();
 
 			System.out.println("Productos con precio entre 80 y 300€: ");
@@ -635,8 +637,8 @@ class TiendaTest {
 			List<Fabricante> listFab = fabHome.findAll();
 					
 			List<String> fabricantesS = listFab.stream()
-					.filter(f -> f.getNombre().charAt(0) == 'S')
 					.map(Fabricante::getNombre)
+					.filter(nombre -> nombre.charAt(0) == 'S')
 					.toList();
 
 			fabricantesS.forEach(System.out::println);
@@ -664,8 +666,8 @@ class TiendaTest {
 			List<Producto> listProd = prodHome.findAll();
 			
 			List<String> productosPortatil = listProd.stream()
-					.filter(p -> p.getNombre().contains("Portátil"))
 					.map(Producto::getNombre)
+					.filter(nombre -> nombre.contains("Portátil"))
 					.toList();
 
 			productosPortatil.forEach(System.out::println);
@@ -812,7 +814,7 @@ class TiendaTest {
 			
 			List<String> crucialMayor200 = listProd.stream()
 					.filter(p -> p.getFabricante().getNombre().equals("Crucial") && p.getPrecio() > 200)
-					.map(p -> p.getNombre())
+					.map(Producto::getNombre)
 					.toList();
 
 			crucialMayor200.forEach(System.out::println);
@@ -840,7 +842,7 @@ class TiendaTest {
 
 			List<String> asusHPSeagate = listProd.stream()
 					.filter(p -> p.getFabricante().getNombre().equals("Asus") || p.getFabricante().getNombre().equals("Hewlett-Packard") || p.getFabricante().getNombre().equals("Seagate") )
-					.map(p -> p.getNombre())
+					.map(Producto::getNombre)
 					.toList();
 
 			asusHPSeagate.forEach(System.out::println);
@@ -877,23 +879,10 @@ Monitor 27 LED Full HD |199.25190000000003|Asus
 
 			List<Producto> listProd = prodHome.findAll();
 
-			//Máxima longitud de los nombres, precios y fabricantes
-			List<Integer> logitudNombres = listProd.stream().map(p -> p.getNombre().length()).toList();
-			Optional<Integer> opMaxNombres = logitudNombres.stream().reduce(Integer::max);
-			int maxNombres;
-            maxNombres = opMaxNombres.orElse(0);
-
-            List<Integer> logitudPrecios = listProd.stream().map(p -> Double.toString(p.getPrecio()).length()).toList();
-			Optional<Integer> opMaxPrecios = logitudPrecios.stream().reduce(Integer::max);
-			int maxPrecios;
-            maxPrecios = opMaxPrecios.orElse(0);
-
-            List<Integer> logitudFabricantes = listProd.stream().map(p -> p.getFabricante().getNombre().length()).toList();
-			Optional<Integer> opMaxFabricantes = logitudFabricantes.stream().reduce(Integer::max);
-			int maxFabricantes = 0;
-			if (opMaxFabricantes.isPresent()) {
-				maxFabricantes = opMaxFabricantes.get();
-			}
+			//Máxima longitud de los nombres, precios y fabricantes. Si son 0, se pone la longitud de las palabras producto, precio y fabricante
+			int maxNombre = listProd.stream().mapToInt(p -> p.getNombre().length()).max().orElse("Producto".length());
+			int maxPrecio = listProd.stream().mapToInt(p -> Double.toString(p.getPrecio()).length()).max().orElse("Precio".length());
+			int maxFabricante = listProd.stream().mapToInt(p -> p.getFabricante().getNombre().length()).max().orElse("Fabricante".length());
 
 			//Productos de precio mayor o igual a 180 ordenados por precio y por nombre
 			List<String> prodMayorO180 = listProd.stream()
@@ -901,14 +890,14 @@ Monitor 27 LED Full HD |199.25190000000003|Asus
 					.sorted(comparing(Producto::getPrecio).thenComparing(Producto::getNombre).reversed())
 					//Formatear en tabla con la longitud máxima menos la longitud del elemento para que se añadan los espacios correctos
 					.map(p ->
-							p.getNombre() + " ".repeat(maxNombres-p.getNombre().length()) + "|" +
-							p.getPrecio() +  " ".repeat(maxPrecios-Double.toString(p.getPrecio()).length()) +"|" +
+							p.getNombre() + " ".repeat(maxNombre-p.getNombre().length()) + "|" +
+							p.getPrecio() +  " ".repeat(maxPrecio-Double.toString(p.getPrecio()).length()) +"|" +
 							p.getFabricante().getNombre())
 					.toList();
 
 			//Formatear cabecera con los espacios máximos y 1 más
-			System.out.println("Producto" + " ".repeat(maxNombres- "Producto".length() +1) + "Precio" + " ".repeat(maxPrecios - "Precio".length()+ 1) + "Fabricante");
-			System.out.println("-".repeat(maxNombres+maxPrecios+maxFabricantes));
+			System.out.println("Producto" + " ".repeat(maxNombre- "Producto".length() +1) + "Precio" + " ".repeat(maxPrecio - "Precio".length()+ 1) + "Fabricante");
+			System.out.println("-".repeat(maxNombre+maxPrecio+maxFabricante));
 
 			prodMayorO180.forEach(System.out::println);
 
@@ -1016,7 +1005,7 @@ Fabricante: Xiaomi
 	
 			List<Fabricante> listFab = fabHome.findAll();
 					
-			List<String> fabsSinProds = listFab.stream().filter(p -> p.getProductos().size() == 0).map(p -> p.getNombre()).toList();
+			List<String> fabsSinProds = listFab.stream().filter(p -> p.getProductos().isEmpty()).map(Fabricante::getNombre).toList();
 
 			fabsSinProds.forEach(System.out::println);
 								
@@ -1040,9 +1029,9 @@ Fabricante: Xiaomi
 		
 			List<Producto> listProd = prodHome.findAll();
 
-			System.out.println("Total de productos: " + listProd.stream().map(producto -> producto.getNombre()).toList().size());
+			System.out.println("Total de productos: " + listProd.stream().map(Producto::getNombre).toList().size());
 
-			Assertions.assertEquals(11,listProd.stream().map(producto -> producto.getNombre()).toList().size());
+			Assertions.assertEquals(11,listProd.stream().map(Producto::getNombre).toList().size());
 			
 			prodHome.commitTransaction();
 		}
@@ -1095,9 +1084,9 @@ Fabricante: Xiaomi
 			List<Producto> listProd = prodHome.findAll();		
 
 			Double precioMedio = listProd.stream()
-					.mapToDouble (p -> p.getPrecio())
+					.mapToDouble (Producto::getPrecio)
 					.average()
-					.getAsDouble();
+					.orElse(0.0);
 
 			Assertions.assertEquals(271.7236363636364, precioMedio);
 
@@ -1122,11 +1111,11 @@ Fabricante: Xiaomi
 		
 			List<Producto> listProd = prodHome.findAll();		
 
-			List<Double> precios = listProd.stream()
-					.map(p -> p.getPrecio())
-					.toList();
+			Double precioMin = listProd.stream()
+					.map(Producto::getPrecio)
+					.reduce(Double::min).orElse(0.0);
 
-			Assertions.assertEquals(59.99, precios.stream().reduce(Double::min).get());
+			Assertions.assertEquals(59.99, precioMin);
 
 
 			prodHome.commitTransaction();
@@ -1151,7 +1140,7 @@ Fabricante: Xiaomi
 			List<Producto> listProd = prodHome.findAll();		
 						
 			Double sumaPreciosProds = listProd.stream()
-					.mapToDouble (p -> p.getPrecio())
+					.mapToDouble (Producto::getPrecio)
 					.sum();
 
 			Assertions.assertEquals(2988.96, sumaPreciosProds);
@@ -1369,7 +1358,7 @@ Hewlett-Packard              2
 				
 			List<String> fabs2oMasProds = listFab.stream()
 					.filter(f -> f.getProductos().size() >= 2)
-					.map(f -> f.getNombre())
+					.map(Fabricante::getNombre)
 					.toList();
 
 			fabs2oMasProds.forEach(System.out::println);
@@ -1396,8 +1385,15 @@ Hewlett-Packard              2
 			fabHome.beginTransaction();
 				
 			List<Fabricante> listFab = fabHome.findAll();
-				
-			//TODO STREAMS
+
+			List<String> fabsProductosMayorO220 = listFab.stream()
+					.map(f -> Map.entry(f, f.getProductos().stream().filter(p -> p.getPrecio() >= 220).count()))
+					.sorted((f1, f2) -> (int) (f2.getValue() - f1.getValue()))
+					.map(f -> "Fabricante: " + f.getKey().getNombre() + "\n\tNúmero de productos precio >= 220: " + f.getValue())
+					.toList();
+
+			fabsProductosMayorO220.forEach(System.out::println);
+
 
 		
 			fabHome.commitTransaction();
@@ -1423,6 +1419,7 @@ Hewlett-Packard              2
 			List<Fabricante> listFab = fabHome.findAll();
 				
 			//TODO STREAMS
+
 		
 			fabHome.commitTransaction();
 		}
