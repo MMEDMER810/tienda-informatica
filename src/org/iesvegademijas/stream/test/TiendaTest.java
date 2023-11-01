@@ -2,11 +2,8 @@ package org.iesvegademijas.stream.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+
 
 import static java.util.stream.Collectors.*;
 import static java.util.Comparator.*;
@@ -1480,7 +1477,7 @@ Hewlett-Packard              2
 			List<Fabricante> listFab = fabHome.findAll();
 				
 			List<String> fabsSumProdsMayor1000 = listFab.stream()
-					.filter(f -> f.getProductos().stream().mapToDouble(p -> p.getPrecio()).sum() > 1000)
+					.filter(f -> f.getProductos().stream().mapToDouble(Producto::getPrecio).sum() > 1000)
 					.map(Fabricante::getNombre)
 					.toList();
 
@@ -1511,9 +1508,9 @@ Hewlett-Packard              2
 			List<Fabricante> listFab = fabHome.findAll();
 
 			List<String> fabsSumProdsMayor1000 = listFab.stream()
-					.filter(f -> f.getProductos().stream().mapToDouble(p -> p.getPrecio()).sum() > 1000)
+					.filter(f -> f.getProductos().stream().mapToDouble(Producto::getPrecio).sum() > 1000)
 					//Mapa con fabricante y suma de los precios de sus productos
-					.map(f -> Map.entry(f, f.getProductos().stream().mapToDouble(p -> p.getPrecio()).sum()))
+					.map(f -> Map.entry(f, f.getProductos().stream().mapToDouble(Producto::getPrecio).sum()))
 					//Ordena por la suma de los precios de los productos
 					.sorted((f1, f2) -> (int)(f1.getValue() - f2.getValue()))
 					.map ( f -> f.getKey().getNombre() + "\n\tSuma total de los precios de sus productos: "+f.getValue())
@@ -1600,8 +1597,7 @@ Hewlett-Packard              2
 									//filtra productos si su precio es >= media
 									.filter(p -> p.getPrecio() >= f.getProductos().stream()
 											.mapToDouble((Producto::getPrecio))
-											.average()
-											.getAsDouble())
+											.average().orElse(0.0))
 									.sorted(comparing(Producto::getPrecio).reversed())
 									.map(p -> p.getNombre() + " ("+p.getPrecio()+"€)")
 									.collect(joining(", "))
