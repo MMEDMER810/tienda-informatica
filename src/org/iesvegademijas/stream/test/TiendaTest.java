@@ -1418,7 +1418,12 @@ Hewlett-Packard              2
 				
 			List<Fabricante> listFab = fabHome.findAll();
 				
-			//TODO STREAMS
+			List<String> fabsSumProdsMayor1000 = listFab.stream()
+					.filter(f -> f.getProductos().stream().mapToDouble(p -> p.getPrecio()).sum() > 1000)
+					.map(Fabricante::getNombre)
+					.toList();
+
+			fabsSumProdsMayor1000.forEach(System.out::println);
 
 		
 			fabHome.commitTransaction();
@@ -1443,13 +1448,22 @@ Hewlett-Packard              2
 			fabHome.beginTransaction();
 				
 			List<Fabricante> listFab = fabHome.findAll();
-				
-			//TODO STREAMS
+
+			List<String> fabsSumProdsMayor1000 = listFab.stream()
+					.filter(f -> f.getProductos().stream().mapToDouble(p -> p.getPrecio()).sum() > 1000)
+					.map(f -> Map.entry(f, f.getProductos().stream().mapToDouble(p -> p.getPrecio()).sum()))
+					.sorted((f1, f2) -> (int)(f1.getValue() - f2.getValue()))
+					.map ( f -> f.getKey().getNombre() + "\n\tSuma total de los precios de sus productos: "+f.getValue())
+					.toList();
+
+			fabsSumProdsMayor1000.forEach(System.out::println);
 		
 			fabHome.commitTransaction();
 		}
 		catch (RuntimeException e) {
 			fabHome.rollbackTransaction();
+
+
 		    throw e; // or display error message
 		}
 		
