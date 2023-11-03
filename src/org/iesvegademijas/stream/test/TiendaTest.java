@@ -973,7 +973,7 @@ Fabricante: Xiaomi
 			List<Fabricante> listFab = fabHome.findAll();
 
 			List<String> fabProds = listFab.stream()
-					.map(f -> "Fabricante: "+ f.getNombre() + "\n\n\t\t\tProductos:\n" + "\t\t\t" +
+					.map(f -> "Fabricante: "+ f.getNombre() + "\n\n\t\t\tProductos:\n" + "\t\t\t" +//se puede hacer con un replaceAll (".", " ") --> esto hace que todos los caracteres se reemplacen por espacio
 							f.getProductos().stream()
 									.map(p -> p.getNombre()+"\n\t\t\t")
 									.collect(joining()))
@@ -1506,6 +1506,9 @@ Hewlett-Packard              2
 			fabHome.beginTransaction();
 				
 			List<Fabricante> listFab = fabHome.findAll();
+
+			//Se puede hacer a partir de un object, mapeas y devuelves y
+			//luego el segundo elemento (que es el que lleva el precio) lo pasas a double y con filter que sea mayor de 1000
 
 			List<String> fabsSumProdsMayor1000 = listFab.stream()
 					.filter(f -> f.getProductos().stream().mapToDouble(Producto::getPrecio).sum() > 1000)
