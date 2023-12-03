@@ -272,7 +272,7 @@ class TiendaTest {
 		    throw e; // or display error message
 		}
 	}
-	
+	//TODO ascendente (menor a mayor) normal y descendente (mayor a menor) reversed. El primero se hace el último
 	/**
 	 * 7. Lista los nombres de los productos ordenados en primer lugar por el nombre de forma ascendente y en segundo lugar por el precio de forma descendente.
 	 */
@@ -723,7 +723,7 @@ class TiendaTest {
 			
 			List<String> prodMayorO180 = listProd.stream()
 					.filter(p -> p.getPrecio()>=180)
-					.sorted(comparing(Producto::getPrecio).thenComparing(Producto::getNombre).reversed())
+					.sorted(comparing(Producto::getPrecio).reversed().thenComparing(Producto::getNombre))
 					.map(p -> "Nombre: " + p.getNombre() + " Precio: " + p.getPrecio())
 					.toList();
 
